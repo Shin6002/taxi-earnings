@@ -1,87 +1,34 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f7f7f8">
-<title>🚕 営収管理</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#f5f5f7;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
-.wrap{max-width:520px;margin:auto;padding:18px 16px 90px}
-h1{font-size:27px;margin:8px 0 18px}.card{background:#fff;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 2px 12px #0000000d}
-label{display:block;font-size:13px;color:#666;margin:12px 0 6px}
-input{width:100%;font-size:20px;padding:13px 12px;border:1px solid #ddd;border-radius:12px;background:#fafafa}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{width:100%;border:0;border-radius:13px;padding:15px;font-size:17px;font-weight:700;margin-top:16px;background:#111;color:#fff}
-.tabs{display:flex;gap:8px;margin-bottom:10px}.tab{flex:1;padding:11px;border:0;border-radius:12px;background:#e8e8eb;font-weight:700}.tab.active{background:#111;color:#fff}
-.stat{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee}.stat:last-child{border:0}.num{font-weight:800}
-.entry{padding:13px 0;border-bottom:1px solid #eee}.entry:last-child{border:0}.small{font-size:12px;color:#777}.danger{background:#fff;color:#c00;border:1px solid #f0caca}
-.empty{text-align:center;color:#888;padding:25px 0}
-</style>
-</head>
-<body>
-<div class="wrap">
-<h1>🚕 営収管理</h1>
-<div class="tabs"><button id="tabInput" class="tab active">入力</button><button id="tabSummary" class="tab">月間集計</button></div>
-
-<section id="inputView" class="card">
-<label>日付</label><input id="date" type="date">
-<label>実質営収（円）</label><input id="sales" type="number" inputmode="numeric" placeholder="42800">
-<div class="row">
-<div><label>営業回数（回）</label><input id="rides" type="number" inputmode="numeric" placeholder="35"></div>
-<div><label>走行距離（km）</label><input id="km" type="number" inputmode="decimal" step="0.1" placeholder="185"></div>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="apple-mobile-web-app-capable" content="yes"><title>🚕 営収管理</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f5f5f7;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}.wrap{max-width:520px;margin:auto;padding:18px 16px 90px}h1{font-size:27px;margin:8px 0 18px}.card{background:#fff;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 2px 12px #0001}label{display:block;font-size:13px;color:#666;margin:12px 0 6px}input,select{width:100%;font-size:20px;padding:13px 12px;border:1px solid #ddd;border-radius:12px;background:#fafafa}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{width:100%;border:0;border-radius:13px;padding:15px;font-size:17px;font-weight:700;margin-top:16px;background:#111;color:#fff}.tabs{display:flex;gap:8px;margin-bottom:10px}.tab{flex:1;padding:11px;border:0;border-radius:12px;background:#e8e8eb;font-weight:700}.tab.active{background:#111;color:#fff}.stat{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee}.num{font-weight:800}.entry{padding:13px 0;border-bottom:1px solid #eee}.small{font-size:12px;color:#777}.danger{background:#fff;color:#c00;border:1px solid #f0caca}.empty{text-align:center;color:#888;padding:25px 0}.monthnav{display:grid;grid-template-columns:48px 1fr 48px;gap:8px;align-items:center}.navbtn{border:0;background:#eee;border-radius:12px;font-size:22px;padding:10px}
+</style></head><body><div class="wrap"><h1>🚕 営収管理</h1><div class="tabs"><button id="tabInput" class="tab active">入力</button><button id="tabSummary" class="tab">月間集計</button><button id="tabAnnual" class="tab">年間集計</button></div>
+<section id="inputView" class="card"><label>日付</label><input id="date" type="date"><label>実質営収（円）</label><input id="sales" type="number" inputmode="numeric" placeholder="42800"><div class="row"><div><label>営業回数（回）</label><input id="rides" type="number" inputmode="numeric"></div><div><label>走行距離（km）</label><input id="km" type="number" inputmode="decimal" step=".1"></div></div><label>拘束時間（時間）</label><input id="hours" type="number" inputmode="decimal" step=".25"><button id="save" class="btn">保存する</button></section>
+<section id="summaryView" class="card" style="display:none"><h2 style="margin-top:0">月間集計</h2><div class="monthnav"><button class="navbtn" id="prev">‹</button><select id="month"></select><button class="navbtn" id="next">›</button></div><div class="stat"><span>実質営収</span><span class="num" id="sumSales">0円</span></div><div class="stat"><span>平均営収</span><span class="num" id="avgSales">0円</span></div><div class="stat"><span>営業回数</span><span class="num" id="sumRides">0回</span></div><div class="stat"><span>走行距離</span><span class="num" id="sumKm">0km</span></div><div class="stat"><span>拘束時間</span><span class="num" id="sumHours">0時間</span></div><div class="stat"><span>時間営収</span><span class="num" id="hourSales">0円/時</span></div><div class="stat"><span>1回営収</span><span class="num" id="rideSales">0円/回</span></div><div class="stat"><span>1km営収</span><span class="num" id="kmSales">0円/km</span></div></section>
+<section id="annualView" class="card" style="display:none">
+<h2 style="margin-top:0">年間集計</h2>
+<div class="monthnav">
+<button class="navbtn" id="prevYear">‹</button>
+<select id="year"></select>
+<button class="navbtn" id="nextYear">›</button>
 </div>
-<label>拘束時間（時間）</label><input id="hours" type="number" inputmode="decimal" step="0.25" placeholder="11.5">
-<button id="save" class="btn">保存する</button>
+<div class="stat"><span>実質営収</span><span class="num" id="yearSales">0円</span></div>
+<div class="stat"><span>月平均営収</span><span class="num" id="yearAvgSales">0円</span></div>
+<div class="stat"><span>営業回数</span><span class="num" id="yearRides">0回</span></div>
+<div class="stat"><span>走行距離</span><span class="num" id="yearKm">0km</span></div>
+<div class="stat"><span>拘束時間</span><span class="num" id="yearHours">0時間</span></div>
+<div class="stat"><span>時間営収</span><span class="num" id="yearHourSales">0円/時</span></div>
+<div class="stat"><span>1回営収</span><span class="num" id="yearRideSales">0円/回</span></div>
+<div class="stat"><span>1km営収</span><span class="num" id="yearKmSales">0円/km</span></div>
 </section>
-
-<section id="summaryView" class="card" style="display:none">
-<h2 id="monthTitle" style="margin-top:0">今月</h2>
-<div class="stat"><span>実質営収</span><span class="num" id="sumSales">0円</span></div>
-<div class="stat"><span>平均営収</span><span class="num" id="avgSales">0円</span></div>
-<div class="stat"><span>営業回数</span><span class="num" id="sumRides">0回</span></div>
-<div class="stat"><span>走行距離</span><span class="num" id="sumKm">0km</span></div>
-<div class="stat"><span>拘束時間</span><span class="num" id="sumHours">0時間</span></div>
-<div class="stat"><span>時間営収</span><span class="num" id="hourSales">0円/時</span></div>
-<div class="stat"><span>1回営収</span><span class="num" id="rideSales">0円/回</span></div>
-<div class="stat"><span>1km営収</span><span class="num" id="kmSales">0円/km</span></div>
-</section>
-
-<section class="card">
-<h2 style="margin-top:0">履歴</h2>
-<div id="history"></div>
-<button id="clear" class="btn danger">全データを削除</button>
-</section>
-</div>
+<section class="card"><h2 style="margin-top:0">履歴</h2><div id="history"></div><button id="clear" class="btn danger">全データを削除</button></section></div>
 <script>
-const $=id=>document.getElementById(id);
-const key="taxiEarningsV1";
-let data=JSON.parse(localStorage.getItem(key)||"[]");
-$("date").value=new Date().toISOString().slice(0,10);
-function yen(n){return Math.round(n).toLocaleString()+"円"}
-function save(){
- const d={date:$("date").value,sales:+$("sales").value||0,rides:+$("rides").value||0,km:+$("km").value||0,hours:+$("hours").value||0};
- if(!d.date || !d.sales){alert("日付と実質営収を入力してください");return}
- data=data.filter(x=>x.date!==d.date); data.push(d); data.sort((a,b)=>b.date.localeCompare(a.date));
- localStorage.setItem(key,JSON.stringify(data));
- $("sales").value=$("rides").value=$("km").value=$("hours").value="";
- render(); alert("保存しました");
-}
-function render(){
- const now=new Date(), ym=now.toISOString().slice(0,7), m=data.filter(x=>x.date.startsWith(ym));
- const ss=m.reduce((a,x)=>a+x.sales,0), rr=m.reduce((a,x)=>a+x.rides,0), kk=m.reduce((a,x)=>a+x.km,0), hh=m.reduce((a,x)=>a+x.hours,0);
- $("monthTitle").textContent=now.getFullYear()+"年"+(now.getMonth()+1)+"月";
- $("sumSales").textContent=yen(ss); $("avgSales").textContent=yen(m.length?ss/m.length:0);
- $("sumRides").textContent=Math.round(rr).toLocaleString()+"回"; $("sumKm").textContent=kk.toLocaleString()+"km";
- $("sumHours").textContent=hh.toLocaleString()+"時間"; $("hourSales").textContent=yen(hh?ss/hh:0)+"/時";
- $("rideSales").textContent=yen(rr?ss/rr:0)+"/回"; $("kmSales").textContent=yen(kk?ss/kk:0)+"/km";
- $("history").innerHTML=data.length?data.map(x=>`<div class="entry"><b>${x.date}</b><br><span>${yen(x.sales)}　${x.rides}回　${x.km}km　拘束${x.hours}時間</span><br><span class="small">時間営収 ${yen(x.hours?x.sales/x.hours:0)}/時</span></div>`).join(""):'<div class="empty">まだ記録がありません</div>';
-}
-$("save").onclick=save;
-$("clear").onclick=()=>{if(confirm("全データを削除します。よろしいですか？")){data=[];localStorage.removeItem(key);render()}};
-$("tabInput").onclick=()=>{ $("inputView").style.display="block";$("summaryView").style.display="none";$("tabInput").classList.add("active");$("tabSummary").classList.remove("active")};
-$("tabSummary").onclick=()=>{ $("inputView").style.display="none";$("summaryView").style.display="block";$("tabSummary").classList.add("active");$("tabInput").classList.remove("active")};
-render();
-</script>
-</body></html>
+const $=id=>document.getElementById(id),key="taxiEarningsV1";let data=JSON.parse(localStorage.getItem(key)||"[]"),d0=new Date(),currentYM=d0.toISOString().slice(0,7),selectedYM=currentYM,selectedYear=String(d0.getFullYear());$("date").value=d0.toISOString().slice(0,10);
+function yen(n){return Math.round(n).toLocaleString()+"円"}function buildMonths(){let s=new Set(data.map(x=>x.date.slice(0,7)));s.add(currentYM);s.add(selectedYM);$("month").innerHTML=[...s].sort().reverse().map(v=>{let[a,b]=v.split("-");return `<option value="${v}">${a}年${+b}月</option>`}).join("");$("month").value=selectedYM}
+function buildYears(){let s=new Set(data.map(x=>x.date.slice(0,4)));s.add(String(d0.getFullYear()));s.add(selectedYear);$("year").innerHTML=[...s].sort().reverse().map(v=>`<option value="${v}">${v}年</option>`).join("");$("year").value=selectedYear}
+function renderYear(){let m=data.filter(x=>x.date.startsWith(selectedYear)),ss=m.reduce((a,x)=>a+x.sales,0),rr=m.reduce((a,x)=>a+x.rides,0),kk=m.reduce((a,x)=>a+x.km,0),hh=m.reduce((a,x)=>a+x.hours,0),months=new Set(m.map(x=>x.date.slice(0,7))).size;$("yearSales").textContent=yen(ss);$("yearAvgSales").textContent=yen(months?ss/months:0);$("yearRides").textContent=rr+"回";$("yearKm").textContent=kk+"km";$("yearHours").textContent=hh+"時間";$("yearHourSales").textContent=yen(hh?ss/hh:0)+"/時";$("yearRideSales").textContent=yen(rr?ss/rr:0)+"/回";$("yearKmSales").textContent=yen(kk?ss/kk:0)+"/km"}
+function render(){let m=data.filter(x=>x.date.startsWith(selectedYM)),ss=m.reduce((a,x)=>a+x.sales,0),rr=m.reduce((a,x)=>a+x.rides,0),kk=m.reduce((a,x)=>a+x.km,0),hh=m.reduce((a,x)=>a+x.hours,0);$("sumSales").textContent=yen(ss);$("avgSales").textContent=yen(m.length?ss/m.length:0);$("sumRides").textContent=rr+"回";$("sumKm").textContent=kk+"km";$("sumHours").textContent=hh+"時間";$("hourSales").textContent=yen(hh?ss/hh:0)+"/時";$("rideSales").textContent=yen(rr?ss/rr:0)+"/回";$("kmSales").textContent=yen(kk?ss/kk:0)+"/km";$("history").innerHTML=data.length?data.map(x=>`<div class="entry"><b>${x.date}</b><br>${yen(x.sales)}　${x.rides}回　${x.km}km　拘束${x.hours}時間</div>`).join(""):'<div class="empty">まだ記録がありません</div>'}
+$("save").onclick=()=>{let x={date:$("date").value,sales:+$("sales").value||0,rides:+$("rides").value||0,km:+$("km").value||0,hours:+$("hours").value||0};if(!x.date||!x.sales)return alert("日付と実質営収を入力してください");data=data.filter(y=>y.date!==x.date);data.push(x);data.sort((a,b)=>b.date.localeCompare(a.date));localStorage.setItem(key,JSON.stringify(data));selectedYM=x.date.slice(0,7);$("sales").value=$("rides").value=$("km").value=$("hours").value="";buildMonths();buildYears();render();renderYear();alert("保存しました")};
+$("month").onchange=()=>{selectedYM=$("month").value;render()};$("year").onchange=()=>{selectedYear=$("year").value;renderYear()};
+$("prevYear").onclick=()=>{selectedYear=String(Number(selectedYear)-1);buildYears();renderYear()};
+$("nextYear").onclick=()=>{selectedYear=String(Number(selectedYear)+1);buildYears();renderYear()};$("prev").onclick=()=>{let[a,b]=selectedYM.split("-").map(Number),d=new Date(a,b-2,1);selectedYM=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");buildMonths();render();buildYears();renderYear()};$("next").onclick=()=>{let[a,b]=selectedYM.split("-").map(Number),d=new Date(a,b,1);selectedYM=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");buildMonths();render()};
+$("tabInput").onclick=()=>{$("inputView").style.display="block";$("summaryView").style.display="none";$("annualView").style.display="none";$("tabInput").classList.add("active");$("tabSummary").classList.remove("active")};$("tabSummary").onclick=()=>{$("inputView").style.display="none";$("summaryView").style.display="block";$("annualView").style.display="none";$("tabSummary").classList.add("active");$("tabInput").classList.remove("active");buildMonths();render()};$("tabAnnual").onclick=()=>{$("inputView").style.display="none";$("summaryView").style.display="none";$("annualView").style.display="block";$("tabAnnual").classList.add("active");$("tabInput").classList.remove("active");$("tabSummary").classList.remove("active");buildYears();renderYear()};$("clear").onclick=()=>{if(confirm("全データを削除しますか？")){data=[];localStorage.removeItem(key);buildMonths();render()}};buildMonths();buildYears();render();renderYear();
+</script></body></html>
