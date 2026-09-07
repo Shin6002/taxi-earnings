@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f7f7f8">
+<title>🚕 営収管理</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f5f7;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+.wrap{max-width:560px;margin:auto;padding:18px 16px 90px}
+h1{font-size:27px;margin:8px 0 18px}
+.card{background:#fff;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 2px 12px #0000000d}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}
+.tab{padding:11px 5px;border:0;border-radius:12px;background:#e8e8eb;font-weight:700;font-size:14px}
+.tab.active{background:#111;color:#fff}
+label{display:block;font-size:13px;color:#666;margin:12px 0 6px}
+input,select{width:100%;font-size:19px;padding:13px 12px;border:1px solid #ddd;border-radius:12px;background:#fafafa}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.time-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{width:100%;border:0;border-radius:13px;padding:15px;font-size:17px;font-weight:700;margin-top:16px;background:#111;color:#fff}
+.btn.secondary{background:#e8e8eb;color:#111}
+.btn.danger{background:#fff;color:#c00;border:1px solid #f0caca}
+.stat{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee}
+.stat:last-child{border:0}.num{font-weight:800}
+.entry{padding:13px 0;border-bottom:1px solid #eee}
+.entry:last-child{border:0}.small{font-size:12px;color:#777}
+.empty{text-align:center;color:#888;padding:25px 0}
+.nav{display:grid;grid-template-columns:48px 1fr 48px;gap:8px;align-items:center}
+.navbtn{border:0;background:#eee;border-radius:12px;font-size:22px;padding:10px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.editing{background:#fff8dc;border:1px solid #eed37b;padding:10px;border-radius:12px;margin-top:10px}
+.compare-table{width:100%;border-collapse:collapse;font-size:13px}
+.compare-table th,.compare-table td{padding:9px 5px;border-bottom:1px solid #eee;text-align:right}
+.compare-table th:first-child,.compare-table td:first-child{text-align:left}
+.note{font-size:12px;color:#777;line-height:1.6}
+h2{font-size:21px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🚕 営収管理</h1>
+
+<div class="tabs">
+<button id="tabInput" class="tab active">入力</button>
+<button id="tabSummary" class="tab">月間</button>
+<button id="tabAnnual" class="tab">年間</button>
+<button id="tabCompare" class="tab">曜日比較</button>
+</div>
+
+<section id="inputView" class="card">
+<label>日付</label><input id="date" type="date">
+<label>実質営収（円）</label><input id="sales" type="number" inputmode="numeric" placeholder="42800">
+<div class="row">
+<div><label>営業回数（回）</label><input id="rides" type="number" inputmode="numeric"></div>
+<div><label>走行距離（km）</label><input id="km" type="number" inputmode="decimal" step=".1"></div>
+</div>
+<label>拘束時間</label>
+<div class="time-row">
+<div><input id="hours" type="number" inputmode="numeric" min="0" placeholder="11"><div class="small">時間</div></div>
+<div><input id="minutes" type="number" inputmode="numeric" min="0" max="59" placeholder="30"><div class="small">分（0〜59）</div></div>
+</div>
+<div id="editing" class="editing" style="display:none">この日付のデータを修正中です</div>
+<button id="save" class="btn">保存する</button>
+<button id="cancelEdit" class="btn secondary" style="display:none">修正をキャンセル</button>
+</section>
+
+<section id="summaryView" class="card" style="display:none">
+<h2>月間集計</h2>
+<div class="nav"><button class="navbtn" id="prev">‹</button><select id="month"></select><button class="navbtn" id="next">›</button></div>
+<div id="monthStats"></div>
+</section>
+
+<section id="annualView" class="card" style="display:none">
+<h2>年間集計</h2>
+<div class="nav"><button class="navbtn" id="prevYear">‹</button><select id="year"></select><button class="navbtn" id="nextYear">›</button></div>
+<div id="yearStats"></div>
+</section>
+
+<section id="compareView" class="card" style="display:none">
+<h2>同じ曜日を比較</h2>
+<label>基準月</label><select id="compareMonth"></select>
+<label>曜日</label><select id="weekday">
+<option value="0">日曜日</option><option value="1">月曜日</option><option value="2">火曜日</option>
+<option value="3">水曜日</option><option value="4">木曜日</option><option value="5">金曜日</option><option value="6">土曜日</option>
+</select>
+<div id="compareResult"></div>
+<p class="note">例：2026年8月・土曜日を選ぶと、8月の土曜日と、それ以前の月の土曜日を月ごとに比較します。</p>
+</section>
+
+<section class="card">
+<h2 style="margin-top:0">履歴</h2>
+<div id="history"></div>
+<button id="clear" class="btn danger">全データを削除</button>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const key="taxiEarningsV1";
+let data=JSON.parse(localStorage.getItem(key)||"[]");
+let today=new Date();
+let currentYM=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0");
+let selectedYM=currentYM, selectedYear=String(today.getFullYear());
+let editingDate=null;
+
+$("date").value=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
+
+function yen(n){return Math.round(n||0).toLocaleString()+"円"}
+function hoursText(h){
+  let total=Math.round((h||0)*60);
+  return Math.floor(total/60)+"時間"+(total%60)+"分";
+}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function saveLocal(){localStorage.setItem(key,JSON.stringify(data))}
+
+function getStats(arr){
+  const ss=arr.reduce((a,x)=>a+Number(x.sales||0),0);
+  const rr=arr.reduce((a,x)=>a+Number(x.rides||0),0);
+  const kk=arr.reduce((a,x)=>a+Number(x.km||0),0);
+  const hh=arr.reduce((a,x)=>a+Number(x.hours||0),0);
+  return {ss,rr,kk,hh,n:arr.length};
+}
+function statsHTML(s, label){
+  return `<h3>${label}</h3>
+  <div class="stat"><span>実質営収</span><span class="num">${yen(s.ss)}</span></div>
+  <div class="stat"><span>平均営収</span><span class="num">${yen(s.n?s.ss/s.n:0)}</span></div>
+  <div class="stat"><span>営業回数</span><span class="num">${s.rr.toLocaleString()}回</span></div>
+  <div class="stat"><span>走行距離</span><span class="num">${s.kk.toLocaleString(undefined,{maximumFractionDigits:1})}km</span></div>
+  <div class="stat"><span>拘束時間</span><span class="num">${hoursText(s.hh)}</span></div>
+  <div class="stat"><span>時間営収</span><span class="num">${yen(s.hh?s.ss/s.hh:0)}/時</span></div>
+  <div class="stat"><span>1回営収</span><span class="num">${yen(s.rr?s.ss/s.rr:0)}/回</span></div>
+  <div class="stat"><span>1km営収</span><span class="num">${yen(s.kk?s.ss/s.kk:0)}/km</span></div>`;
+}
+
+function buildMonths(){
+  const set=new Set(data.map(x=>x.date.slice(0,7)));
+  set.add(currentYM); set.add(selectedYM);
+  const arr=[...set].sort().reverse();
+  $("month").innerHTML=arr.map(v=>{let[a,b]=v.split("-");return `<option value="${v}">${a}年${+b}月</option>`}).join("");
+  $("month").value=selectedYM;
+  $("compareMonth").innerHTML=arr.map(v=>{let[a,b]=v.split("-");return `<option value="${v}">${a}年${+b}月</option>`}).join("");
+  $("compareMonth").value=selectedYM;
+}
+function buildYears(){
+  const set=new Set(data.map(x=>x.date.slice(0,4)));
+  set.add(String(today.getFullYear())); set.add(selectedYear);
+  $("year").innerHTML=[...set].sort().reverse().map(v=>`<option value="${v}">${v}年</option>`).join("");
+  $("year").value=selectedYear;
+}
+
+function renderMonth(){
+  const arr=data.filter(x=>x.date.startsWith(selectedYM));
+  $("monthStats").innerHTML=statsHTML(getStats(arr),selectedYM.replace("-","年")+"月");
+}
+function renderYear(){
+  const arr=data.filter(x=>x.date.startsWith(selectedYear+"-"));
+  const months=new Set(arr.map(x=>x.date.slice(0,7))).size;
+  const s=getStats(arr);
+  $("yearStats").innerHTML=statsHTML(s,selectedYear+"年")+"<p class='note'>データが入っている月数："+months+"か月</p>";
+}
+
+function renderHistory(){
+  const arr=[...data].sort((a,b)=>b.date.localeCompare(a.date));
+  $("history").innerHTML=arr.length?arr.map(x=>{
+    const h=hoursText(Number(x.hours||0));
+    return `<div class="entry">
+      <b>${esc(x.date)}</b><br>
+      ${yen(x.sales)}　${x.rides||0}回　${Number(x.km||0).toLocaleString()}km　拘束 ${h}
+      <div class="actions"><button class="btn secondary" onclick="editEntry('${esc(x.date)}')">修正</button>
+      <button class="btn danger" onclick="deleteEntry('${esc(x.date)}')">削除</button></div>
+    </div>`;
+  }).join(""):"<div class='empty'>まだデータがありません</div>";
+}
+
+window.editEntry=function(date){
+  const x=data.find(v=>v.date===date); if(!x)return;
+  editingDate=date;
+  $("date").value=x.date;
+  $("sales").value=x.sales;
+  $("rides").value=x.rides;
+  $("km").value=x.km;
+  const total=Math.round(Number(x.hours||0)*60);
+  $("hours").value=Math.floor(total/60);
+  $("minutes").value=total%60;
+  $("editing").style.display="block";
+  $("cancelEdit").style.display="block";
+  showTab("input");
+  scrollTo(0,0);
+}
+window.deleteEntry=function(date){
+  if(!confirm(date+" のデータを削除しますか？"))return;
+  data=data.filter(x=>x.date!==date); saveLocal(); renderAll();
+}
+
+$("save").onclick=()=>{
+  const date=$("date").value;
+  const sales=Number($("sales").value), rides=Number($("rides").value), km=Number($("km").value);
+  const hr=Math.max(0,Number($("hours").value)||0), min=Math.min(59,Math.max(0,Number($("minutes").value)||0));
+  if(!date||!Number.isFinite(sales)){alert("日付と実質営収を入力してください");return}
+  const obj={date,sales,rides,km,hours:(hr*60+min)/60};
+  const idx=data.findIndex(x=>x.date===date);
+  if(idx>=0)data[idx]=obj; else data.push(obj);
+  saveLocal();
+  editingDate=null; $("editing").style.display="none"; $("cancelEdit").style.display="none";
+  $("sales").value="";$("rides").value="";$("km").value="";$("hours").value="";$("minutes").value="";
+  renderAll(); alert("保存しました");
+};
+$("cancelEdit").onclick=()=>{
+  editingDate=null;$("editing").style.display="none";$("cancelEdit").style.display="none";
+  $("sales").value="";$("rides").value="";$("km").value="";$("hours").value="";$("minutes").value="";
+};
+
+function renderCompare(){
+  const ym=$("compareMonth").value, wd=Number($("weekday").value);
+  const dates=data.filter(x=>x.date.slice(0,7)===ym && new Date(x.date+"T12:00:00").getDay()===wd);
+  const byMonth={};
+  data.forEach(x=>{
+    const d=new Date(x.date+"T12:00:00");
+    if(d.getDay()!==wd)return;
+    const m=x.date.slice(0,7);
+    if(m>ym)return;
+    (byMonth[m]??=[]).push(x);
+  });
+  const months=Object.keys(byMonth).sort().reverse();
+  if(!months.length){$("compareResult").innerHTML="<div class='empty'>該当するデータがありません</div>";return}
+  let out=`<p><b>${ym.replace("-","年")}月の${["日","月","火","水","木","金","土"][wd]}曜日</b></p>`;
+  out+=`<table class="compare-table"><tr><th>月</th><th>営収</th><th>回数</th><th>km</th><th>拘束</th></tr>`;
+  months.forEach(m=>{
+    const s=getStats(byMonth[m]);
+    out+=`<tr><td>${m.replace("-","年")}月</td><td>${yen(s.ss)}</td><td>${s.rr}回</td><td>${s.kk}</td><td>${hoursText(s.hh)}</td></tr>`;
+  });
+  out+="</table>";
+  $("compareResult").innerHTML=out;
+}
+
+function showTab(which){
+  const ids=["input","summary","annual","compare"];
+  ids.forEach(v=>{
+    $(v+"View").style.display=v===which?"block":"none";
+    $("tab"+v.charAt(0).toUpperCase()+v.slice(1)).classList.toggle("active",v===which);
+  });
+  if(which==="summary")renderMonth();
+  if(which==="annual")renderYear();
+  if(which==="compare")renderCompare();
+}
+$("tabInput").onclick=()=>showTab("input");
+$("tabSummary").onclick=()=>showTab("summary");
+$("tabAnnual").onclick=()=>showTab("annual");
+$("tabCompare").onclick=()=>showTab("compare");
+
+$("month").onchange=e=>{selectedYM=e.target.value;renderMonth()};
+$("prev").onclick=()=>{let d=new Date(selectedYM+"-01T12:00:00");d.setMonth(d.getMonth()-1);selectedYM=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");buildMonths();renderMonth()};
+$("next").onclick=()=>{let d=new Date(selectedYM+"-01T12:00:00");d.setMonth(d.getMonth()+1);selectedYM=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");buildMonths();renderMonth()};
+$("year").onchange=e=>{selectedYear=e.target.value;renderYear()};
+$("prevYear").onclick=()=>{selectedYear=String(Number(selectedYear)-1);buildYears();renderYear()};
+$("nextYear").onclick=()=>{selectedYear=String(Number(selectedYear)+1);buildYears();renderYear()};
+$("compareMonth").onchange=renderCompare;
+$("weekday").onchange=renderCompare;
+$("clear").onclick=()=>{if(confirm("全データを削除しますか？この操作は元に戻せません。")){data=[];saveLocal();renderAll()}};
+
+function renderAll(){buildMonths();buildYears();renderMonth();renderYear();renderCompare();renderHistory()}
+renderAll();
+</script>
+</body>
+</html>
